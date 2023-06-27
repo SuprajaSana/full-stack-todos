@@ -11,6 +11,7 @@ const Todos = sequelize.define('todo', {
     },
     name: Sequelize.STRING,
     description: Sequelize.STRING,
+    status:Sequelize.STRING
 })
 
 module.exports = Todos;

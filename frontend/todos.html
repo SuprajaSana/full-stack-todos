@@ -18,10 +18,12 @@
 
       const name = e.target.name.value;
       const description = e.target.description.value;
+      const status="pending"
 
       const obj = {
         name: name,
         description: description,
+        status:status
       };
 
       try {
@@ -45,6 +47,10 @@
         for (var i = 0; i < response.data.todo.length; i++) {
           showTodosOnScreen(response.data.todo[i]);
         }
+        const responseDoneTodos = await axios.get("http://localhost:8000/get/todosdone");
+        for (var i = 0; i < responseDoneTodos.data.todo.length; i++) {
+          showTodosDoneOnScreen(responseDoneTodos.data.todo[i]);
+        }
       } catch (err) {
         console.log(err);
       }
@@ -57,6 +63,15 @@
                 <button onClick="moveToDone('${todos.id}','${todos.name}','${todos.description}')">Done</button>
                 <button onClick="deleteTodos('${todos.id}')">Delete</button>
                 </li>`;
+
+      parentTodo.innerHTML = parentTodo.innerHTML + childHtml;
+    }
+    
+    function showTodosDoneOnScreen(todos) {
+      document.getElementById("name").value = "";
+      document.getElementById("description").value = "";
+      const parentTodo = document.getElementById("listOfTodosDone");
+      const childHtml = `<li id=${todos.id}>${todos.name} - ${todos.description} </li>`;
 
       parentTodo.innerHTML = parentTodo.innerHTML + childHtml;
     }
@@ -79,13 +94,31 @@
       parentTodo.removeChild(childToBeDelete);
     }
 
-    function moveToDone(id,name,description) {
-      removeTodoFromScreen(id);
+    async function moveToDone(id,name,description) {
+      
+      deleteTodos(id)
 
-      const parentTodo = document.getElementById("listOfTodosDone");
-      const childHtml = `<li id=${id}>${name} - ${description} </li>`;
+      const status="done"
 
-      parentTodo.innerHTML = parentTodo.innerHTML + childHtml;
+      const obj = {
+        name: name,
+        description: description,
+        status:status
+      };
+
+      try {
+        const response = await axios.post(
+          "http://localhost:8000/add/todosdone",
+          obj
+        );
+        showTodosDoneOnScreen(response.data.todo);
+
+        for (var i = 0; i < response.data.todo.length; i++) {
+          showTodosDoneOnScreen(response.data.todo[i]);
+        }
+      } catch (err) {
+        console.log(err);
+      }
     }
   </script>
 </body>
