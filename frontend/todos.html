@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<body>
+  <h3>Todos Remaining</h3>
+  <form onSubmit="postTodos(event)">
+    <label>Todos Name</label>
+    <input type="text" id="name" name="name" required />
+    <label>Todos Description</label>
+    <input type="text" id="description" name="description" required />
+    <button>Add Todos</button>
+  </form>
+  <ul id="listOfTodosRemaining"></ul>
+  <h3>Todos Done</h3>
+  <ul id="listOfTodosDone"></ul>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js"></script>
+  <script>
+    async function postTodos(e) {
+      e.preventDefault();
+
+      const name = e.target.name.value;
+      const description = e.target.description.value;
+
+      const obj = {
+        name: name,
+        description: description,
+      };
+
+      try {
+        const response = await axios.post(
+          "http://localhost:8000/add/todos",
+          obj
+        );
+        showTodosOnScreen(response.data.todo);
+
+        for (var i = 0; i < response.data.todo.length; i++) {
+          showTodosOnScreen(response.data.todo[i]);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/get/todos");
+        for (var i = 0; i < response.data.todo.length; i++) {
+          showTodosOnScreen(response.data.todo[i]);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    });
+    function showTodosOnScreen(todos) {
+      document.getElementById("name").value = "";
+      document.getElementById("description").value = "";
+      const parentTodo = document.getElementById("listOfTodosRemaining");
+      const childHtml = `<li id=${todos.id}>${todos.name} - ${todos.description} -
+                <button onClick="moveToDone('${todos.id}','${todos.name}','${todos.description}')">Done</button>
+                <button onClick="deleteTodos('${todos.id}')">Delete</button>
+                </li>`;
+
+      parentTodo.innerHTML = parentTodo.innerHTML + childHtml;
+    }
+
+    async function deleteTodos(id) {
+      try {
+        const response = await axios.delete(
+          `http://localhost:8000/delete/todos/${id}`
+        );
+        removeTodoFromScreen(id);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+
+    function removeTodoFromScreen(id) {
+      const parentTodo = document.getElementById("listOfTodosRemaining");
+      const childToBeDelete = document.getElementById(id);
+
+      parentTodo.removeChild(childToBeDelete);
+    }
+
+    function moveToDone(id,name,description) {
+      removeTodoFromScreen(id);
+
+      const parentTodo = document.getElementById("listOfTodosDone");
+      const childHtml = `<li id=${id}>${name} - ${description} </li>`;
+
+      parentTodo.innerHTML = parentTodo.innerHTML + childHtml;
+    }
+  </script>
+</body>
